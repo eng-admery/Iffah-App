@@ -12,4 +12,7 @@ interface RelapseDao {
 
     @Query("SELECT * FROM relapses ORDER BY timestamp DESC")
     fun getAllRelapses(): Flow<List<RelapseEntity>>
+
+    @Query("DELETE FROM relapses")
+    suspend fun deleteAllRelapses()
 }
