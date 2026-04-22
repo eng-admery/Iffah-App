@@ -38,6 +38,7 @@ import com.example.iffah.ui.theme.WarningOrange
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.runtime.collectAsState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,7 +47,7 @@ fun StatsScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val relapses by viewModel.relapsesList
+    val relapses by viewModel.relapsesList.collectAsState()
     val mostCommon = viewModel.getMostCommonTrigger()
     val dateFormat = SimpleDateFormat("yyyy/MM/dd - hh:mm a", Locale("ar"))
 

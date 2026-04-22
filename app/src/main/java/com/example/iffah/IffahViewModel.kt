@@ -59,18 +59,18 @@ class IffahViewModel(application: Application) : AndroidViewModel(application) {
 
     private var startTime = prefs.getLong("start_time", 0L)
 
-    private val _streakDays = mutableStateOf(0)
-    val streakDays: State<Int> = _streakDays
+    private val _streakDays = MutableStateFlow(0)
+    val streakDays: StateFlow<Int> = _streakDays.asStateFlow()
 
     // متغير جديد لحفظ قائمة الانتكاسات
-    private val _relapsesList = mutableStateOf<List<RelapseEntity>>(emptyList())
-    val relapsesList: State<List<RelapseEntity>> = _relapsesList
+    private val _relapsesList = MutableStateFlow<List<RelapseEntity>>(emptyList())
+    val relapsesList: StateFlow<List<RelapseEntity>> = _relapsesList.asStateFlow()
 
     // ================= وقت التذكير =================
-    private val _reminderHour24 = mutableStateOf(prefs.getInt("reminder_hour", 9))
-    private val _reminderMinute = mutableStateOf(prefs.getInt("reminder_minute", 0))
-    val reminderHour24: State<Int> = _reminderHour24
-    val reminderMinute: State<Int> = _reminderMinute
+    private val _reminderHour24 = MutableStateFlow(prefs.getInt("reminder_hour", 9))
+    private val _reminderMinute = MutableStateFlow(prefs.getInt("reminder_minute", 0))
+    val reminderHour24: StateFlow<Int> = _reminderHour24.asStateFlow()
+    val reminderMinute: StateFlow<Int> = _reminderMinute.asStateFlow()
 
     fun updateReminderTime(hour24: Int, minute: Int) {
         prefs.edit()

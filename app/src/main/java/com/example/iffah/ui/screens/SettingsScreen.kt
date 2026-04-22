@@ -44,6 +44,7 @@ import com.example.iffah.ui.theme.LightGreenBg
 import com.example.iffah.ui.theme.PrimaryGreen
 import com.example.iffah.ui.theme.SecondaryGreen
 import com.example.iffah.ui.theme.WarningOrange
+import androidx.compose.runtime.collectAsState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,8 +54,8 @@ fun SettingsScreen(
     modifier: Modifier = Modifier
 ) {
     // قراءة الوقت الحالي من ViewModel (24 ساعة)
-    val hour24 by viewModel.reminderHour24
-    val minute by viewModel.reminderMinute
+    val hour24 by viewModel.reminderHour24.collectAsState()
+    val minute by viewModel.reminderMinute.collectAsState()
 
     // تحويل 24 ساعة ← 12 ساعة للعرض
     val isPM = hour24 >= 12
