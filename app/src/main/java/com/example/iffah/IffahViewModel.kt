@@ -19,6 +19,7 @@ import com.example.iffah.data.AchievementsList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import com.example.iffah.ui.theme.ThemeMode
 
 class IffahViewModel(application: Application) : AndroidViewModel(application) {
     // ── حساب الإنجازات ──
@@ -30,6 +31,7 @@ class IffahViewModel(application: Application) : AndroidViewModel(application) {
                 isUnlocked = days >= achievement.daysRequired,
                 progress = (days.toFloat() / achievement.daysRequired.toFloat()).coerceIn(0f, 1f)
             )
+
         }
 
         // التحقق من إنجاز جديد لم يُبلَّغ عنه
@@ -41,6 +43,7 @@ class IffahViewModel(application: Application) : AndroidViewModel(application) {
         if (latestUnlocked != null && latestUnlocked.achievement.id > lastNotifiedId) {
             _newlyUnlocked.value = latestUnlocked.achievement
         }
+
     }
 
     fun onAchievementDialogDismissed() {
@@ -48,6 +51,10 @@ class IffahViewModel(application: Application) : AndroidViewModel(application) {
         prefs.edit().putInt("last_notified_achievement_id", id).apply()
         _newlyUnlocked.value = null
     }
+
+    private val _themeMode = MutableStateFlow(ThemeMode.SYSTEM)
+    val themeMode: StateFlow<ThemeMode> = _themeMode.asStateFlow()
+
     // ── الإنجازات ──
     private val _achievements = MutableStateFlow<List<AchievementState>>(emptyList())
     val achievements: StateFlow<List<AchievementState>> = _achievements.asStateFlow()
@@ -97,6 +104,25 @@ class IffahViewModel(application: Application) : AndroidViewModel(application) {
     init {
         calculateStreak()
         fetchRelapses() // نستدعي دالة جلب البيانات عند فتح التطبيق
+        loadThemeMode()
+    }
+
+    private fun loadThemeMode() {
+        val saved = prefs.getInt("theme_mode", 0)
+        _themeMode.value = when (saved) {
+            1 -> ThemeMode.DARK
+            2 -> ThemeMode.LIGHT
+            else -> ThemeMode.SYSTEM
+        }
+    }
+
+    fun setThemeMode(mode: ThemeMode) {
+        _themeMode.value = mode
+        prefs.edit().putInt("theme_mode", when (mode) {
+            ThemeMode.SYSTEM -> 0
+            ThemeMode.DARK -> 1
+            ThemeMode.LIGHT -> 2
+        }).apply()
     }
 
     private fun calculateStreak() {
