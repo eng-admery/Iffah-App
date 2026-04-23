@@ -1,115 +1,158 @@
 package com.example.iffah.ui.screens
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.iffah.data.RelapseEntity
-import com.example.iffah.ui.components.RelapseItem
-import com.example.iffah.ui.components.SummaryCard
-import com.example.iffah.ui.components.TriggerBarChart
+import com.example.iffah.data.SolutionsRepository
+import com.example.iffah.ui.components.*
+import com.example.iffah.IffahViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StatsScreen(
     relapses: List<RelapseEntity>,
+    streakDays: Int,
     onDeleteAllRelapses: () -> Unit
 ) {
-    // معالجة البيانات (حساب الأرقام من القائمة)
-    val triggerCounts = remember(relapses) {
-        relapses.groupingBy { it.trigger }.eachCount()
-    }
-    val mostCommonTrigger = remember(triggerCounts) {
-        triggerCounts.maxByOrNull { it.value }?.key
+    // Trigger counts
+    val triggerCounts = relapses
+        .groupingBy { it.trigger }
+        .eachCount()
+
+    // Total relapses
+    val totalRelapses = relapses.size
+
+    // Best streak (calculate from relapses)
+    val bestStreak = remember(relapses, streakDays) {
+        if (relapses.isEmpty()) {
+            streakDays
+        } else {
+            val sorted = relapses.sortedByDescending { it.timestamp }
+            var best = 0L
+            var current = if (sorted.size < relapses.size) {
+                // streak is current ongoing
+                streakDays.toLong()
+            } else {
+                0L
+            }
+            best = maxOf(best, current)
+
+            for (i in 0 until sorted.size - 1) {
+                val diff = (sorted[i].timestamp - sorted[i + 1].timestamp) / (1000 * 60 * 60 * 24)
+                if (diff > best) best = diff
+            }
+            best.toInt()
+        }
     }
 
-    // الهيكل الأساسي للشاشة
+    // State for solutions dialog
+    var selectedTrigger by remember { mutableStateOf<String?>(null) }
+    val selectedSolution = selectedTrigger?.let { SolutionsRepository.getSolution(it) }
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("الإحصائيات", color = Color.White) },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF1B1B2F))
+                title = { Text("الإحصائيات") },
+                actions = {
+                    if (relapses.isNotEmpty()) {
+                        IconButton(onClick = onDeleteAllRelapses) {
+                            Icon(Icons.Default.Delete, contentDescription = "حذف الكل")
+                        }
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                )
             )
-        },
-        containerColor = Color(0xFF0F0F1A)
+        }
     ) { padding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(vertical = 16.dp)
         ) {
-
-            // 1. صف البطاقات (استدعاء من StatsComponents)
-            item {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    SummaryCard(
-                        title = "إجمالي الانتكاسات",
-                        value = relapses.size.toString(),
-                        valueColor = Color(0xFFFF6B6B),
-                        modifier = Modifier.weight(1f)
-                    )
-                    SummaryCard(
-                        title = "أكثر محفز",
-                        value = mostCommonTrigger ?: "لا يوجد",
-                        valueColor = Color(0xFFFF9800),
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            }
-
-            // 2. بطاقة الرسم البياني (استدعاء من TriggerBarChart)
-            item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1B1B2F)),
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(text = "📊 توزيع المحفزات", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                        Spacer(modifier = Modifier.height(16.dp))
-                        TriggerBarChart(triggerCounts = triggerCounts)
-                    }
-                }
-            }
-
-            // 3. عنوان القائمة وزر الحذف
+            // Summary Cards
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text(text = "سجل الانتكاسات", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                    if (relapses.isNotEmpty()) {
-                        IconButton(onClick = onDeleteAllRelapses) {
-                            Icon(Icons.Default.Delete, contentDescription = "حذف الكل", tint = Color(0xFFFF6B6B))
-                        }
-                    }
+                    SummaryCard(
+                        title = "الانتكاسات",
+                        value = "$totalRelapses",
+                        subtitle = "مرة إجمالاً",
+                        modifier = Modifier.weight(1f)
+                    )
+                    SummaryCard(
+                        title = "أفضل سلسلة",
+                        value = "$bestStreak",
+                        subtitle = "يوماً متتالياً",
+                        modifier = Modifier.weight(1f)
+                    )
                 }
             }
 
-            // 4. محتوى القائمة (استدعاء RelapseItem من StatsComponents)
+            // Trigger Bar Chart - clickable
+            item {
+                TriggerBarChart(
+                    triggerCounts = triggerCounts,
+                    onTriggerClick = { trigger ->
+                        selectedTrigger = trigger
+                    }
+                )
+            }
+
+            // Recent relapses header
+            item {
+                Text(
+                    text = "آخر الانتكاسات",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+
+            // Relapse list
             if (relapses.isEmpty()) {
                 item {
-                    Box(modifier = Modifier.fillMaxWidth().padding(vertical = 48.dp), contentAlignment = Alignment.Center) {
-                        Text(text = "لا توجد انتكاسات — أحسنت! 🎉", color = Color(0xFF4CAF50), fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "الحمد لله، لا توجد انتكاسات مسجلة",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             } else {
-                items(relapses.reversed()) { relapse ->
+                items(relapses.take(10)) { relapse ->
                     RelapseItem(relapse = relapse)
                 }
             }
         }
+    }
+
+    // Solutions Dialog
+    selectedSolution?.let { solution ->
+        TriggerSolutionsDialog(
+            solution = solution,
+            onDismiss = { selectedTrigger = null }
+        )
     }
 }

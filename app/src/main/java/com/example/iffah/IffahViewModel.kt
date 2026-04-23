@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit
 import com.example.iffah.data.Achievement
 import com.example.iffah.data.AchievementState
 import com.example.iffah.data.AchievementsList
+import com.example.iffah.data.JournalEntry
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -169,6 +170,21 @@ class IffahViewModel(application: Application) : AndroidViewModel(application) {
                 prefs.edit().putLong("start_time", 0L).apply()
                 _streakDays.value = 0
             }
+        }
+    }
+
+    // ================= اليوميات =================
+    val journalEntries: Flow<List<JournalEntry>> = dao.getAllJournalEntries()
+
+    fun addJournalEntry(content: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            dao.insertJournalEntry(JournalEntry(content = content))
+        }
+    }
+
+    fun deleteJournalEntry(entry: JournalEntry) {
+        viewModelScope.launch(Dispatchers.IO) {
+            dao.deleteJournalEntry(entry)
         }
     }
 }

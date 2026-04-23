@@ -5,7 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [RelapseEntity::class], version = 1, exportSchema = false)
+@Database(entities = [RelapseEntity::class, JournalEntry::class], version = 2, exportSchema = false)
 abstract class IffahDatabase : RoomDatabase() {
 
     abstract fun relapseDao(): RelapseDao
@@ -20,7 +20,10 @@ abstract class IffahDatabase : RoomDatabase() {
                     context.applicationContext,
                     IffahDatabase::class.java,
                     "iffah_database"
-                ).build()
+                )
+                    // هذا هو السطر السحري الذي يصلح المشكلة: يسمح بتدمير البيانات القديمة مؤقتاً عند تغيير نسخة قاعدة البيانات
+                    .fallbackToDestructiveMigration()
+                    .build()
                 INSTANCE = instance
                 instance
             }

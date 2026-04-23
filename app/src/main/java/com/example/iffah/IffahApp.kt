@@ -7,6 +7,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -16,18 +17,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
-import androidx.compose.material3.NavigationBarItemDefaults.colors
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.iffah.ui.screens.AchievementsScreen
 import com.example.iffah.ui.screens.AdhkarScreen
+import com.example.iffah.ui.screens.JournalScreen
 import com.example.iffah.ui.screens.SettingsScreen
 import com.example.iffah.ui.screens.StatsScreen
 import com.example.iffah.ui.theme.IffahTheme
@@ -44,13 +44,13 @@ fun IffahApp(
     viewModel: IffahViewModel = viewModel(),
     onRescheduleReminder: () -> Unit = {}
 ) {
-    // قراءة الثيم من الـ ViewModel
     val themeMode by viewModel.themeMode.collectAsState()
 
-    // وضع التطبيق كله داخل الثيم
     IffahTheme(themeMode = themeMode) {
+        val colorScheme = MaterialTheme.colorScheme
+
         val bottomNavItems = listOf(
-            BottomNavItem("achievements", "إنجازات", Icons.Default.Star),
+            BottomNavItem("home", "الرئيسية", Icons.Default.Star), // تغيير الاسم
             BottomNavItem("stats", "إحصائيات", Icons.Default.Info),
             BottomNavItem("adhkar", "أذكار", Icons.Default.Favorite),
             BottomNavItem("settings", "إعدادات", Icons.Default.Settings)
@@ -60,10 +60,12 @@ fun IffahApp(
         val currentRoute = navBackStackEntry?.destination?.route
 
         Scaffold(
+            containerColor = colorScheme.background,
+            // تم حذف floatingActionButton بالكامل من هنا
             bottomBar = {
                 NavigationBar(
-                    containerColor = Color(0xFF0B180B),
-                    contentColor = Color(0xFF3D5A3D)
+                    containerColor = colorScheme.surface,
+                    contentColor = colorScheme.onSurfaceVariant
                 ) {
                     bottomNavItems.forEach { item ->
                         NavigationBarItem(
@@ -80,11 +82,11 @@ fun IffahApp(
                             icon = { Icon(imageVector = item.icon, contentDescription = item.label) },
                             label = { Text(item.label, fontSize = 11.sp) },
                             colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = Color(0xFF4CAF50),
-                                selectedTextColor = Color(0xFF4CAF50),
-                                unselectedIconColor = Color(0xFF3A4A3A),
-                                unselectedTextColor = Color(0xFF3A4A3A),
-                                indicatorColor = Color(0xFF1A2E1A)
+                                selectedIconColor = colorScheme.primary,
+                                selectedTextColor = colorScheme.primary,
+                                unselectedIconColor = colorScheme.onSurfaceVariant,
+                                unselectedTextColor = colorScheme.onSurfaceVariant,
+                                indicatorColor = colorScheme.primaryContainer
                             )
                         )
                     }
@@ -93,10 +95,10 @@ fun IffahApp(
         ) { innerPadding ->
             NavHost(
                 navController = navController,
-                startDestination = "achievements",
+                startDestination = "home", // تغيير المسار
                 modifier = Modifier.padding(innerPadding)
             ) {
-                composable("achievements") {
+                composable("home") {
                     viewModel.computeAchievements()
                     val achievements by viewModel.achievements.collectAsState()
                     val streakDays by viewModel.streakDays.collectAsState()
@@ -107,13 +109,17 @@ fun IffahApp(
                         achievements = achievements,
                         newlyUnlocked = newlyUnlocked,
                         onDismissNewAchievement = viewModel::onAchievementDialogDismissed,
-                        onRelapse = { trigger -> viewModel.relapse(trigger) }
+                        onRelapse = { trigger -> viewModel.relapse(trigger) },
+                        onNavigateToJournal = { navController.navigate("journal") } // تمرير عمل الانتقال
                     )
                 }
 
                 composable("stats") {
+                    val relapses by viewModel.relapsesList.collectAsState(initial = emptyList())
+                    val streakDays by viewModel.streakDays.collectAsState()
                     StatsScreen(
-                        relapses = viewModel.relapsesList.collectAsState(initial = emptyList()).value,
+                        relapses = relapses,
+                        streakDays = streakDays,
                         onDeleteAllRelapses = { viewModel.clearAllData() }
                     )
                 }
@@ -126,6 +132,12 @@ fun IffahApp(
                     SettingsScreen(
                         viewModel = viewModel,
                         onRescheduleReminder = onRescheduleReminder
+                    )
+                }
+
+                composable("journal") {
+                    JournalScreen(
+                        onBack = { navController.popBackStack() }
                     )
                 }
             }

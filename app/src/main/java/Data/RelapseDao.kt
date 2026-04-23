@@ -1,7 +1,9 @@
 package com.example.iffah.data
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
 
@@ -15,4 +17,13 @@ interface RelapseDao {
 
     @Query("DELETE FROM relapses")
     suspend fun deleteAllRelapses()
+    // اليوميات
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertJournalEntry(entry: JournalEntry)
+
+    @Query("SELECT * FROM journal_entries ORDER BY timestamp DESC")
+    fun getAllJournalEntries(): kotlinx.coroutines.flow.Flow<List<JournalEntry>>
+
+    @Delete
+    suspend fun deleteJournalEntry(entry: JournalEntry)
 }

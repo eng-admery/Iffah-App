@@ -1,20 +1,38 @@
 package com.example.iffah.ui.screens
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.iffah.ui.theme.PrimaryGreen
-import com.example.iffah.ui.theme.SecondaryGreen
 
-// كيان الأذكار (تأكد من وجوده في مشروعك بهذا الشكل أو عدل الكود ليتطابق مع كيانك)
+// كيان الأذكار
 data class Dhikr(
     val text: String,
     val source: String,
@@ -24,7 +42,9 @@ data class Dhikr(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdhkarScreen(modifier: Modifier = Modifier) {
-    // قائمة الأذكار (يمكنك لاحقاً نقلها لملف مستقل أو قاعدة بيانات)
+    val colorScheme = MaterialTheme.colorScheme
+
+    // قائمة الأذكار
     val allAdhkar = remember {
         listOf(
             Dhikr("أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ، لَا إِلَهَ إِلَّا اللهُ وَحْدَهُ لَا شَرِيكَ لَهُ", "مسلم", "صباح"),
@@ -33,7 +53,6 @@ fun AdhkarScreen(modifier: Modifier = Modifier) {
             Dhikr("حَسْبِيَ اللَّهُ لَا إِلَهَ إِلَّا هُوَ عَلَيْهِ تَوَكَّلْتُ وَهُوَ رَبُّ الْعَرْشِ الْعَظِيمِ", "أبو داود", "ثبات"),
             Dhikr("أَمْسَيْنَا وَأَمْسَى الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ، لَا إِلَهَ إِلَّا اللهُ وَحْدَهُ لَا شَرِيكَ لَهُ", "مسلم", "مساء"),
             Dhikr("اللَّهُمَّ بِكَ أَمْسَيْنَا، وَبِكَ أَصْبَحْنَا، وَبِكَ نَحْيَا، وَبِكَ نَمُوتُ، وَإِلَيْكَ الْمَصِيرُ", "الترمذي", "مساء")
-            // ... أضف باقي الـ 24 ذكر هنا بنفس الطريقة
         )
     }
 
@@ -54,7 +73,7 @@ fun AdhkarScreen(modifier: Modifier = Modifier) {
         Text(
             text = "حصن المسلم",
             style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-            color = PrimaryGreen,
+            color = colorScheme.primary, // لون ديناميكي
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
@@ -62,9 +81,9 @@ fun AdhkarScreen(modifier: Modifier = Modifier) {
         ScrollableTabRow(
             selectedTabIndex = categories.indexOf(selectedCategory),
             edgePadding = 0.dp,
-            containerColor = MaterialTheme.colorScheme.surface,
-            contentColor = PrimaryGreen,
-            divider = {} // إزالة الخط السفلي الافتراضي
+            containerColor = colorScheme.surface, // لون ديناميكي
+            contentColor = colorScheme.primary,
+            divider = {}
         ) {
             categories.forEach { category ->
                 Tab(
@@ -76,8 +95,8 @@ fun AdhkarScreen(modifier: Modifier = Modifier) {
                             fontWeight = if (selectedCategory == category) FontWeight.Bold else FontWeight.Normal
                         )
                     },
-                    selectedContentColor = PrimaryGreen,
-                    unselectedContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    selectedContentColor = colorScheme.primary, // لون ديناميكي
+                    unselectedContentColor = colorScheme.onSurface.copy(alpha = 0.6f)
                 )
             }
         }
@@ -98,16 +117,18 @@ fun AdhkarScreen(modifier: Modifier = Modifier) {
 
 @Composable
 fun DhikrCard(dhikr: Dhikr) {
+    val colorScheme = MaterialTheme.colorScheme
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+            containerColor = colorScheme.surfaceVariant.copy(alpha = 0.3f) // لون ديناميكي
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         border = CardDefaults.outlinedCardBorder(enabled = true).copy(
             width = 1.dp,
-            brush = androidx.compose.ui.graphics.SolidColor(SecondaryGreen.copy(alpha = 0.2f))
+            brush = SolidColor(colorScheme.primary.copy(alpha = 0.2f)) // لون ديناميكي بدلاً من SecondaryGreen
         )
     ) {
         Column(
@@ -119,7 +140,7 @@ fun DhikrCard(dhikr: Dhikr) {
                     lineHeight = 28.sp,
                     fontWeight = FontWeight.Medium
                 ),
-                color = MaterialTheme.colorScheme.onSurface
+                color = colorScheme.onSurface // لون ديناميكي
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -132,13 +153,13 @@ fun DhikrCard(dhikr: Dhikr) {
                 // شارة التصنيف
                 Surface(
                     shape = RoundedCornerShape(8.dp),
-                    color = PrimaryGreen.copy(alpha = 0.1f)
+                    color = colorScheme.primaryContainer // لون ديناميكي للخلفية
                 ) {
                     Text(
                         text = dhikr.category,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                         style = MaterialTheme.typography.labelSmall,
-                        color = PrimaryGreen,
+                        color = colorScheme.onPrimaryContainer, // لون ديناميكي للنص
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -147,7 +168,7 @@ fun DhikrCard(dhikr: Dhikr) {
                 Text(
                     text = "رواه ${dhikr.source}",
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    color = colorScheme.onSurface.copy(alpha = 0.5f) // لون ديناميكي
                 )
             }
         }
